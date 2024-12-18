@@ -45,3 +45,10 @@ class CartForm(forms.ModelForm):
         if self.product and quantity > self.product.quantity:
             raise forms.ValidationError("Quantity exceeds available stock.")
         return quantity
+
+class RemoveCartItemForm(forms.Form):
+    quantity = forms.IntegerField(
+        min_value=1,
+        label="Quantity to Remove",
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter quantity'})
+    )

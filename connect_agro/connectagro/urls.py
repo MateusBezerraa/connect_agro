@@ -15,4 +15,5 @@ urlpatterns = [
     path('producers/<str:username>/', views.producer_page, name='producer_page'),
     path('cart/', views.view_cart, name='cart'),
     path('add-to-cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('cart/remove/<int:cart_id>/', views.remove_from_cart, name='remove_from_cart'),
 ]

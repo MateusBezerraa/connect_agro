@@ -1,0 +1,13 @@
+{% block content %}
+<h2>Remove Items from Cart</h2>
+<p>Product: {{ cart_item.product.name }}</p>
+<p>Current Quantity: {{ cart_item.quantity }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Remove</button>
+</form>
+
+<a href="{% url 'cart' %}" class="btn btn-secondary">Cancel</a>
+{% endblock %}

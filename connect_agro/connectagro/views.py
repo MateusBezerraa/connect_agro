@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.urls import reverse
 from .models import UserProfile, Product, Cart
-from .forms import ProductForm, UserRegistrationForm, CartForm
+from .forms import ProductForm, UserRegistrationForm, CartForm, RemoveCartItemForm
 
 class CustomLoginView(LoginView):
     """
@@ -126,10 +126,61 @@ def add_to_cart(request, product_id):
     
     return render(request, 'add_to_cart.html', {'form': form, 'product': product})
 
+@login_required
+def view_cart(request):
+    from collections import defaultdict
+
+    # Fetch cart items for the logged-in user
+    cart_items = Cart.objects.filter(user=request.user)
+
+    # Group items by producer username (or ID if preferred)
+    grouped_cart = defaultdict(list)
+    for item in cart_items:
+        producer_username = item.product.created_by.username
+        grouped_cart[producer_username].append(item)
+
+    # Convert to a list of tuples for template compatibility
+    grouped_cart_items = grouped_cart.items()
+
+    # Calculate total cost
+    total_cost = sum(item.product.price * item.quantity for item in cart_items)
+
+    return render(request, 'cart.html', {
+        'grouped_cart': grouped_cart_items,
+        'total_cost': total_cost
+    })
 
 
 @login_required
-def view_cart(request):
-    cart_items = Cart.objects.filter(user=request.user)
-    total_cost = sum(item.product.price * item.quantity for item in cart_items)
-    return render(request, 'cart.html', {'cart_items': cart_items, 'total_cost': total_cost})
+def remove_from_cart(request, cart_id):
+    cart_item = get_object_or_404(Cart, id=cart_id, user=request.user)
+    
+    if request.method == "POST":
+        form = RemoveCartItemForm(request.POST)
+        if form.is_valid():
+            quantity_to_remove = form.cleaned_data['quantity']
+
+            if quantity_to_remove >= cart_item.quantity:
+                # Remove the entire item from the cart
+                cart_item.product.quantity += cart_item.quantity  # Return stock
+                cart_item.product.save()
+                cart_item.delete()
+            else:
+                # Reduce the quantity in the cart
+                cart_item.quantity -= quantity_to_remove
+                cart_item.save()
+
+                # Restore stock for the product
+                cart_item.product.quantity += quantity_to_remove
+                cart_item.product.save()
+
+            return redirect('cart')  # Redirect to cart view
+
+    else:
+        form = RemoveCartItemForm()
+
+    return render(request, 'remove_from_cart.html', {
+        'cart_item': cart_item,
+        'form': form
+    })
+
