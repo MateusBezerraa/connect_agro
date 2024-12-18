@@ -1,5 +1,6 @@
 {% block content %}
 <h2>Available Producers</h2>
+<h3><a href="{% url 'cart' %}" class="btn btn-link">See Cart</a></h2>
 <ul>
     {% for producer in producers %}
         <li>

@@ -1,0 +1,32 @@
+{% load custom_filters %}
+{% block content %}
+<h2>Your Cart</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in cart_items %}
+        <tr>
+            <td>{{ item.product.name }}</td>
+            <td>${{ item.product.price }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.product.price|multiply:item.quantity|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">Your cart is empty.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p><strong>Total Cost:</strong> ${{ total_cost }}</p>
+<a href="{% url 'producer_list' %}" class="btn btn-secondary">Continue Shopping</a>
+{% endblock %}
+
+

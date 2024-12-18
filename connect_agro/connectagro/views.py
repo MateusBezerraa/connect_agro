@@ -4,8 +4,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.urls import reverse
-from .models import UserProfile, Product, Inventory
-from .forms import ProductForm, UserRegistrationForm
+from .models import UserProfile, Product, Cart
+from .forms import ProductForm, UserRegistrationForm, CartForm
 
 class CustomLoginView(LoginView):
     """
@@ -87,3 +87,49 @@ def producer_page(request, username):
     producer = get_object_or_404(UserProfile, user__username=username)
     products = Product.objects.filter(created_by=producer.user)
     return render(request, 'producer_page.html', {'producer': producer, 'products': products})
+
+@login_required
+def add_to_cart(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    
+    if request.method == "POST":
+        form = CartForm(request.POST, product=product)
+        if form.is_valid():
+            quantity = form.cleaned_data['quantity']
+
+            # Check if the quantity is available in stock
+            if quantity > product.quantity:
+                return render(request, 'add_to_cart.html', {
+                    'form': form,
+                    'product': product,
+                    'error': 'Not enough stock available.'
+                })
+
+            # Update or create cart entry
+            cart_item, created = Cart.objects.get_or_create(
+                user=request.user,
+                product=product,
+                defaults={'quantity': quantity}  # Set initial quantity for new cart items
+            )
+            if not created:
+                # If cart item exists, increment the quantity
+                cart_item.quantity += quantity
+                cart_item.save()
+
+            # Deduct the quantity from product stock
+            product.quantity -= quantity
+            product.save()
+
+            return redirect('cart')  # Redirect to the cart view
+    else:
+        form = CartForm()
+    
+    return render(request, 'add_to_cart.html', {'form': form, 'product': product})
+
+
+
+@login_required
+def view_cart(request):
+    cart_items = Cart.objects.filter(user=request.user)
+    total_cost = sum(item.product.price * item.quantity for item in cart_items)
+    return render(request, 'cart.html', {'cart_items': cart_items, 'total_cost': total_cost})
