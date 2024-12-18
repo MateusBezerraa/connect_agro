@@ -1,0 +1,14 @@
+{% block content %}
+<h2>Available Producers</h2>
+<ul>
+    {% for producer in producers %}
+        <li>
+            <a href="{% url 'producer_page' producer.user.username %}">
+                {{ producer.user.username }}'s Products
+            </a>
+        </li>
+    {% empty %}
+        <li>No producers are available at the moment.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

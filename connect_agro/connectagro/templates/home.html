@@ -1,0 +1,11 @@
+{% block content %}
+<h1>Welcome to Connect Agro</h1>
+<p>This is the homepage.</p>
+
+<p>
+    <a href="{% url 'login' %}" class="btn btn-link">Login</a>
+</p>
+<p>
+    <a href="{% url 'register' %}" class="btn btn-link">Don't have an account? Register</a>
+</p>
+{% endblock %}

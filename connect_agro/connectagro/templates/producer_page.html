@@ -1,0 +1,10 @@
+{% block content %}
+<h2>Products by {{ producer.username }}</h2>
+<ul>
+    {% for product in products %}
+        <li>{{ product.name }} - ${{ product.price }} ({{ product.quantity }} available)</li>
+    {% empty %}
+        <li>No products available.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
